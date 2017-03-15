@@ -18,11 +18,13 @@ namespace FitbitApi.Controllers
 
         [Route("customers/{customerId}/orders")]
         [HttpGet]
-        public IEnumerable<FoodSummary> FindOrdersByCustomer(int customerId)
+        public IEnumerable<string> FindOrdersByCustomer(int customerId)
         {
-            var summaries = new List<FoodSummary> {
-                new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1500, ProteinTotal = 80, CarbsTotal = 180 },
-                new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 1700, ProteinTotal = 100, CarbsTotal = 200 },
+            var settings = new SettingsRetriever().Retrieve();
+
+            var summaries = new List<string> {
+                settings.AccessToken,
+                settings.RefreshToken,
             };
             return summaries;
         }
