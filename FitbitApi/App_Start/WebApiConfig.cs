@@ -16,6 +16,9 @@ namespace FitbitApi.App_Start
 
             // This will prevent any xml formatting for responses. If we end up needing that in the future there are other workarounds
             config.Formatters.Remove(config.Formatters.XmlFormatter);
+
+            config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+            config.Formatters.JsonFormatter.UseDataContractJsonSerializer = false;
         }
     }
 }

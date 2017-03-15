@@ -17,7 +17,8 @@ namespace FitbitApi.Controllers
             _client = new RestClient(baseUrl);
             _authorizationCode = ConfigurationManager.AppSettings["AuthorizationCode"];
             _base64EncodedCredentials = ConfigurationManager.AppSettings["Base64EncodedCredentials"];
-    }
+            _defaultDaysRangeCount = int.TryParse(ConfigurationManager.AppSettings["DefaultDaysRangeCount"], out _defaultDaysRangeCount) ? _defaultDaysRangeCount : -14;
+        }
 
         [HttpGet]
         public IHttpActionResult Summaries([FromUri] SummaryRequest request)
@@ -47,10 +48,12 @@ namespace FitbitApi.Controllers
         {
             InitializeTokens();
 
-            var from = DateTime.Now.AddDays(-14);
-            var to = DateTime.Now;
+            var from = request?.From ?? DateTime.Now.AddDays(_defaultDaysRangeCount);
+            var to = request?.To ?? DateTime.Now;
 
-            Console.WriteLine($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
+            from = from <= to ? from : to.AddDays(_defaultDaysRangeCount); // just in case
+
+            //Console.WriteLine($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
 
             var summaries = GetFoodSummaries(from, to);
 
@@ -67,7 +70,7 @@ namespace FitbitApi.Controllers
             return Ok(summaries);
         }
 
-        public List<FoodSummary> GetFoodSummaries(DateTime from, DateTime to)
+        private List<FoodSummary> GetFoodSummaries(DateTime from, DateTime to)
         {
             var summaries = new List<FoodSummary>();
 
@@ -81,7 +84,7 @@ namespace FitbitApi.Controllers
 
         private FoodSummary GetFoodSummary(DateTime date)
         {
-            Console.WriteLine($"Retrieving totals for {date:MMM dd} ...");
+            //Console.WriteLine($"Retrieving totals for {date:MMM dd} ...");
 
             string url = $"1/user/-/foods/log/date/{date:yyyy-MM-dd}.json";
             var request = new RestRequest(url, Method.GET);
@@ -142,7 +145,8 @@ namespace FitbitApi.Controllers
         private string _authorizationCode;
         private string _accessToken;
         private string _refreshToken;
-        private string _base64EncodedCredentials;
+        private readonly string _base64EncodedCredentials;
+        private readonly int _defaultDaysRangeCount;
         private string _redirectUrl =
             "https://fitbitfunctionsapp.azurewebsites.net/api/HttpTriggerCSharp1?code=LuvqkWc8OKsA3igutQP3GCha1oRN2Y5ASqgG1PaXwtXYHhyQvLZ6Cg==";
     }
