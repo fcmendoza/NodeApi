@@ -35,7 +35,7 @@ namespace FitbitApi.Controllers
             var from = DateTime.Now.AddDays(daysCount * -1);
             var to = DateTime.Now;
 
-            summaries = GetFoodSummaries(from, to);
+            //summaries = GetFoodSummaries(from, to);
             return Ok(summaries);
         }
 
