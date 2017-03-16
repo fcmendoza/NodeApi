@@ -55,19 +55,27 @@ namespace FitbitApi.Controllers
 
             //Console.WriteLine($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
 
-            var summaries = GetFoodSummaries(from, to);
-
-            var averages = new FoodSummary
+            try
             {
-                Date = DateTime.MinValue,
-                CaloriesTotal = summaries.Average(x => x.CaloriesTotal),
-                ProteinTotal = summaries.Average(x => x.ProteinTotal),
-                CarbsTotal = summaries.Average(x => x.CarbsTotal),
-            };
+                var summaries = GetFoodSummaries(from, to);
 
-            summaries.Add(averages);
+                var averages = new FoodSummary
+                {
+                    Date = DateTime.MinValue,
+                    CaloriesTotal = summaries.Average(x => x.CaloriesTotal),
+                    ProteinTotal = summaries.Average(x => x.ProteinTotal),
+                    CarbsTotal = summaries.Average(x => x.CarbsTotal),
+                };
 
-            return Ok(summaries);
+                summaries.Add(averages);
+
+                return Ok(summaries);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError($"Error when retrieving summaries. Error={ex.ToString()}");
+                throw;
+            }
         }
 
         private List<FoodSummary> GetFoodSummaries(DateTime from, DateTime to)
