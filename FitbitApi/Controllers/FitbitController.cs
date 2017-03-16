@@ -47,7 +47,6 @@ namespace FitbitApi.Controllers
         [HttpGet, Route("fitbit/summaries")]
         public IHttpActionResult GetSummaries([FromUri] SummaryRequest request)
         {
-            
             try
             {
                 InitializeTokens();
@@ -70,6 +69,8 @@ namespace FitbitApi.Controllers
                 };
 
                 summaries.Add(averages);
+
+                System.Diagnostics.Trace.TraceInformation($"Retrieving summaries operation finished. Returning {summaries.Count} summaries.");
 
                 return Ok(summaries);
             }
