@@ -6,6 +6,7 @@ using System.Net;
 using System.Web.Http;
 using FitbitApi.Models;
 using RestSharp;
+using System.Net.Http;
 
 namespace FitbitApi.Controllers
 {
@@ -46,17 +47,18 @@ namespace FitbitApi.Controllers
         [HttpGet, Route("fitbit/summaries")]
         public IHttpActionResult GetSummaries([FromUri] SummaryRequest request)
         {
-            InitializeTokens();
-
-            var from = request?.From ?? DateTime.Now.AddDays(_defaultDaysRangeCount);
-            var to = request?.To ?? DateTime.Now;
-
-            from = from <= to ? from : to.AddDays(_defaultDaysRangeCount); // just in case
-
-            //Console.WriteLine($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
-
+            
             try
             {
+                InitializeTokens();
+
+                var from = request?.From ?? DateTime.Now.AddDays(_defaultDaysRangeCount);
+                var to = request?.To ?? DateTime.Now;
+
+                from = from <= to ? from : to.AddDays(_defaultDaysRangeCount); // just in case
+
+                System.Diagnostics.Trace.TraceInformation($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
+
                 var summaries = GetFoodSummaries(from, to);
 
                 var averages = new FoodSummary
@@ -74,7 +76,10 @@ namespace FitbitApi.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError($"Error when retrieving summaries. Error={ex.ToString()}");
-                throw;
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound) {
+                    Content = new StringContent($"Error when retrieving summaries. Error={ex.ToString()}"),
+                    ReasonPhrase = $"Internal Error. ErrorDetails={ex.Message}."
+                });
             }
         }
 
@@ -107,6 +112,10 @@ namespace FitbitApi.Controllers
                     RefreshAccessToken();
                     GetFoodSummary(date); // retry;
                 }
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK) {
+                System.Diagnostics.Trace.TraceError($"Error when performing request to Fitbit's API. StatusCode={response.StatusCode} ({response.StatusDescription}), ResponseContent='{response.Content}'.");
             }
 
             var summary = response.Data.summary;
