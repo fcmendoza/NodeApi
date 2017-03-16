@@ -28,6 +28,12 @@ namespace FitbitApi.Controllers
                 new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1500, ProteinTotal = 80, CarbsTotal = 180 },
                 new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 1700, ProteinTotal = 100, CarbsTotal = 200 },
             };
+
+            int daysCount = 2;
+            var from = DateTime.Now.AddDays(daysCount * -1);
+            var to = DateTime.Now;
+
+            summaries = GetFoodSummaries(from, to);
             return Ok(summaries);
         }
 
