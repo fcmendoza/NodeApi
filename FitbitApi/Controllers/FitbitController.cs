@@ -24,29 +24,10 @@ namespace FitbitApi.Controllers
         [HttpGet]
         public IHttpActionResult Summaries([FromUri] SummaryRequest request)
         {
-            InitializeTokens();
-
-            var from = request?.From ?? DateTime.Now.AddDays(_defaultDaysRangeCount);
-            var to = request?.To ?? DateTime.Now;
-
-            from = from <= to ? from : to.AddDays(_defaultDaysRangeCount); // just in case
-
-            System.Diagnostics.Trace.TraceInformation($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
-
-            var summaries = GetFoodSummaries(from, to);
-
-            var averages = new FoodSummary
-            {
-                Date = DateTime.MinValue,
-                CaloriesTotal = summaries.Average(x => x.CaloriesTotal),
-                ProteinTotal = summaries.Average(x => x.ProteinTotal),
-                CarbsTotal = summaries.Average(x => x.CarbsTotal),
+            var summaries = new List<FoodSummary> {
+                new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1500, ProteinTotal = 80, CarbsTotal = 180 },
+                new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 1700, ProteinTotal = 100, CarbsTotal = 200 },
             };
-
-            summaries.Add(averages);
-
-            System.Diagnostics.Trace.TraceInformation($"Retrieving summaries operation finished. Returning {summaries.Count} summaries.");
-
             return Ok(summaries);
         }
 
@@ -54,6 +35,8 @@ namespace FitbitApi.Controllers
         [HttpGet]
         public IEnumerable<string> FindOrdersByCustomer(int customerId)
         {
+            System.Diagnostics.Trace.TraceInformation($"Retrieving tokens ...");
+
             var settings = new SettingsRetriever().Retrieve();
 
             var summaries = new List<string> {
