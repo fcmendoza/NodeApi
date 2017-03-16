@@ -97,7 +97,7 @@ namespace FitbitApi.Controllers
 
         private FoodSummary GetFoodSummary(DateTime date)
         {
-            //Console.WriteLine($"Retrieving totals for {date:MMM dd} ...");
+            System.Diagnostics.Trace.TraceInformation($"Retrieving totals for {date:MMM dd} ...");
 
             string url = $"1/user/-/foods/log/date/{date:yyyy-MM-dd}.json";
             var request = new RestRequest(url, Method.GET);
@@ -109,6 +109,8 @@ namespace FitbitApi.Controllers
             {
                 if (response.Content.Contains("expired_token"))
                 {
+                    System.Diagnostics.Trace.TraceInformation($"Token expired. Refreshing token and retrying operation ...");
+
                     RefreshAccessToken();
                     GetFoodSummary(date); // retry;
                 }
