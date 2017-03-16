@@ -24,6 +24,8 @@ namespace FitbitApi.Controllers
         [HttpGet]
         public IHttpActionResult Summaries([FromUri] SummaryRequest request)
         {
+            InitializeTokens();
+
             var summaries = new List<FoodSummary> {
                 new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1500, ProteinTotal = 80, CarbsTotal = 180 },
                 new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 1700, ProteinTotal = 100, CarbsTotal = 200 },
