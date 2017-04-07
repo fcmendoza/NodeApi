@@ -18,17 +18,19 @@ namespace FitbitApi.Controllers
             _client = new RestClient(baseUrl);
             _authorizationCode = ConfigurationManager.AppSettings["AuthorizationCode"];
             _base64EncodedCredentials = ConfigurationManager.AppSettings["Base64EncodedCredentials"];
-            _defaultDaysRangeCount = int.TryParse(ConfigurationManager.AppSettings["DefaultDaysRangeCount"], out _defaultDaysRangeCount) ? _defaultDaysRangeCount : -14;
+            _defaultDaysRangeCount = int.TryParse(ConfigurationManager.AppSettings["DefaultDaysRangeCount"], out _defaultDaysRangeCount) ? _defaultDaysRangeCount : 14;
         }
 
         [HttpGet]
+        // http://nodex.azurewebsites.net/api/fitbit/summaries or 
+        // http://nodex.azurewebsites.net/api/fitbit
         public IHttpActionResult Summaries([FromUri] SummaryRequest request)
         {
             InitializeTokens();
 
             var summaries = new List<FoodSummary> {
-                new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1500, ProteinTotal = 80, CarbsTotal = 180 },
-                new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 1700, ProteinTotal = 100, CarbsTotal = 200 },
+                new FoodSummary { Date = DateTime.Now.Date.AddDays(-5), CaloriesTotal = 1700, ProteinTotal = 120, CarbsTotal = 180 },
+                new FoodSummary { Date = DateTime.Now.Date.AddDays(-4), CaloriesTotal = 2050, ProteinTotal = 120, CarbsTotal = 240 },
             };
 
             int daysCount = 2;
@@ -39,8 +41,9 @@ namespace FitbitApi.Controllers
             return Ok(summaries);
         }
 
-        [Route("customers/{customerId}/orders")]
+        [Route("customers/{customerId}/orders")] 
         [HttpGet]
+        // http://nodex.azurewebsites.net/customers/1/orders
         public IEnumerable<string> FindOrdersByCustomer(int customerId)
         {
             System.Diagnostics.Trace.TraceInformation($"Retrieving tokens ...");
@@ -55,30 +58,22 @@ namespace FitbitApi.Controllers
         }
 
         [HttpGet, Route("fitbit/summaries")]
+        // http://nodex.azurewebsites.net/fitbit/summaries
         public IHttpActionResult GetSummaries([FromUri] SummaryRequest request)
         {
             try
             {
                 InitializeTokens();
 
-                var from = request?.From ?? DateTime.Now.AddDays(_defaultDaysRangeCount);
+                var daysCount = _defaultDaysRangeCount * -1 + 1;
+                var from = request?.From ?? DateTime.Now.AddDays(daysCount);
                 var to = request?.To ?? DateTime.Now;
 
-                from = from <= to ? from : to.AddDays(_defaultDaysRangeCount); // just in case
+                from = from <= to ? from : to.AddDays(daysCount); // just in case
 
                 System.Diagnostics.Trace.TraceInformation($"Retrieving daily totals from {from:MMM dd} to {to:MMM dd} ...");
 
                 var summaries = GetFoodSummaries(from, to);
-
-                var averages = new FoodSummary
-                {
-                    Date = DateTime.MinValue,
-                    CaloriesTotal = summaries.Average(x => x.CaloriesTotal),
-                    ProteinTotal = summaries.Average(x => x.ProteinTotal),
-                    CarbsTotal = summaries.Average(x => x.CarbsTotal),
-                };
-
-                summaries.Add(averages);
 
                 System.Diagnostics.Trace.TraceInformation($"Retrieving summaries operation finished. Returning {summaries.Count} summaries.");
 
